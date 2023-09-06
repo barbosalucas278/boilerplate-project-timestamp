@@ -22,22 +22,45 @@ app.get("/", function (req, res) {
 app.get("/api/hello", function (req, res) {
   res.json({ greeting: "hello API" });
 });
-app.get("/api/:date", function (req, res) {
+app.get("/api/:date?", function (req, res) {
   try {
+    let date = new Date();
     const param = req.params.date;
-    const dateResponse = new Date(param);
+    if (param == null) {
+      res.json({
+        unix: date.getTime(),
+        utc: date.toUTCString(),
+      });
+    }
+    if (isDateValid(param)) {
+      date = new Date(param);
+    } else {
+      if (isUnixDate(param)) {
+        date = new Date(parseInt(param));
+      } else {
+        res.json({ error: "Invalid Date" });
+      }
+    }
+    //validaciones de parametro
     const response = {
-      utc: dateResponse.toUTCString(),
-      unix: dateResponse.getTime(),
+      unix: date.getTime(),
+      utc: date.toUTCString(),
     };
-
     res.json(response);
   } catch (error) {
     res.json({ error: "Invalid Date" });
   }
 });
 
+const isDateValid = (stringDate) => {
+  const date = new Date(stringDate);
+  return date === "Invalid Date" || !isNaN(new Date(stringDate));
+};
+
+const isUnixDate = (stringDate) => {
+  return !isNaN(stringDate);
+};
 // listen for requests :)
-var listener = app.listen(process.env.PORT, function () {
+var listener = app.listen(3000, function () {
   console.log("Your app is listening on port " + listener.address().port);
 });
